@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title></title>
+	<style type="text/css">
+		* {
+			margin: 0;
+			padding: 0;
+		}
+	</style>
+</head>
+<body>
+	<script type="text/javascript">
+		//启动
+		window.onload = function(){
+			Game.exe();
+		};
+		//创建对象Game
+		var Game = {
+			
+			exe: function(){
+					document.body.style.background="yellow";
+				var MainBox = document.createElement("div");
+					MainBox.id="MainBox";
+					MainBox.style.cssText="width:300px;height:500px;margin:50px auto;border:10px solid blue;position:relative;overflow:hidden;";
+					document.body.appendChild(MainBox);
+					this.init();
+			},
+			//计分器
+			score: 0,
+			//游戏是否结束
+			ifEnd: false,
+			//初始化
+			init: function(){
+				var MainBox = document.getElementById("MainBox");
+				MainBox.innerHTML="";
+				var This = this;
+				Game.score = 0;
+				Game.ifEnd = false;
+				var FirstP = document.createElement("p");
+					FirstP.style.cssText="margin:50px auto;font-size:16px;text-align:center;font-weight:bold;";
+					FirstP.innerHTML="飞机大战重置版";
+					MainBox.appendChild(FirstP);
+				var html="";
+				for(var i=0;i<4;i++){
+					var StartButton = document.createElement("p");
+						StartButton.style.cssText="width:150px;height:40px;text-align:center;line-height:40px;background-color:#fff;color:#000;cursor:pointer;margin:60px auto;";
+						StartButton.onmouseenter=function(){
+							this.style.backgroundColor="orange";
+						};
+						StartButton.onmouseleave=function(){
+							this.style.backgroundColor="#fff";
+						};
+						StartButton.index = i;
+						StartButton.onclick=function(e){
+							e = e||window.event;
+							This.start(this.index,MainBox,e);
+						}
+						switch(i){
+							case 0:
+								html="初级难度";
+								break;
+							case 1:
+								html="中级难度";
+								break;
+							case 2:
+								html="高级难度";
+								break;
+							case 3:
+								html="赵某附体";
+								break;
+						};
+						StartButton.innerHTML=html;
+						MainBox.appendChild(StartButton);	
+				};
+					
+			},
+			//游戏开始
+			start: function(index,MainBox,e){
+				MainBox.innerHTML="";
+				var zScore = document.createElement("p");
+					zScore.innerHTML=Game.score;
+					MainBox.appendChild(zScore);
+				this.plane(index,MainBox,e);
+				this.enemy(index,MainBox,zScore);
+			},
+			//飞机函数
+			plane: function(index,MainBox,e){
+				var zPlane = new Image();
+					zPlane.src="img/plane.png";
+					zPlane.width=60;
+					zPlane.height=36;
+					zPlane.id="plane";
+				var x = e.pageX,
+				 	y = e.pageY;
+				var tY=MainBox.offsetTop+parseInt(MainBox.style.borderWidth) + zPlane.height/2;
+				var lX=MainBox.offsetLeft+parseInt(MainBox.style.borderWidth) + zPlane.width/2;
+				window.onresize = function(){
+						lX=MainBox.offsetLeft+parseInt(MainBox.style.borderWidth) + zPlane.width/2;
+					}
+				var top = y-tY;
+				var left = x-lX;
+
+					zPlane.style.cssText="display:block;position:absolute;top:"+top+"px;left:"+left+"px";
+					MainBox.appendChild(zPlane);
+
+				var tMin = 0,
+					tMax = MainBox.clientHeight - zPlane.height,
+					lMin = -zPlane.width/2,
+					lMax = MainBox.clientWidth - zPlane.width/2;
+					document.onmousemove=function(e){
+						if (!Game.ifEnd) {
+							e = e||window.event;
+							var top = e.pageY - tY;
+							var left = e.pageX - lX;
+							top = Math.min(top,tMax);
+							top = Math.max(top,tMin);
+							left = Math.min(left,lMax);
+							left = Math.max(left,lMin);
+							zPlane.style.top=top+"px";
+							zPlane.style.left=left+"px";
+						}
+					}
+				this.bullet(index,MainBox,zPlane);
+			},
+			//子弹函数
+			bullet: function(index,MainBox,zPlane){
+				var speed;
+					switch(index){
+						case 0:
+							speed=150;
+							break;
+						case 1:
+							speed=400;
+							break;
+						case 2:
+							speed=400;
+							break;
+						case 3:
+							speed=30;
+							break;
+					}
+					console.log("index");
+				this.bulletTimer = setInterval(function(){
+					var zBullet = new Image();
+						zBullet.src = "img/bullet.png";
+						zBullet.height=22;
+						zBullet.width=6;
+						zBullet.className="bullet";
+					var top = zPlane.offsetTop - zBullet.height;
+						left = zPlane.offsetLeft + zPlane.width/2 - zBullet.width/2;
+						zBullet.style.cssText="position:absolute;top:"+top+"px;left:"+left+"px;";
+						MainBox.appendChild(zBullet);
+						zBullet.timer = setInterval(function(){
+							if(!zBullet.parentNode){
+								clearInterval(zBullet.timer);
+							}
+							zBullet.style.top = zBullet.offsetTop - 3+"px";
+							if(zBullet.offsetTop < -zBullet.height){
+								clearInterval(zBullet.timer);
+								zBullet.parentNode.removeChild(zBullet);
+							}
+						},13);
+				},speed);   //*************子弹生成速度
+				
+			},
+			//敌军函数
+			enemy: function(index,MainBox,zScore){
+				var speed;
+					switch(index)
+					{
+						case 0:
+							speed=800;
+							break;
+						case 1:
+							speed=500;
+							break;
+						case 2:
+							speed=200;
+							break;
+						case 3:
+							speed=200;
+							break;
+					}
+				this.enemyTimer = setInterval(function(){
+					var zEnemy = new Image();
+						zEnemy.src = "img/enemy.png";
+						zEnemy.width=23;
+						zEnemy.height=30;
+					var lMin = 0,
+						lMax = MainBox.clientWidth - zEnemy.width;
+					var left = Math.random()*(lMax-lMin)+lMin;
+						zEnemy.style.cssText="position:absolute;top:"+(-zEnemy.height)+"px;left:"+left+"px;";
+						MainBox.appendChild(zEnemy);
+						var a = Math.random()*4+1;
+						zEnemy.timer = setInterval(function(){
+							zEnemy.style.top = zEnemy.offsetTop+a+"px";
+							if(zEnemy.offsetTop > MainBox.clientHeight){
+								clearInterval(zEnemy.timer);
+								zEnemy.parentNode.removeChild(zEnemy);
+							}
+						},13);
+						//每个敌军对所有子弹进行碰撞检测
+						var allbullet = Game.getClass("bullet");
+						zEnemy.bullethittimer = setInterval(function(){
+							for(var i=0;i<allbullet.length;i++){
+								if(Game.hit(zEnemy,allbullet[i])){
+									Game.score++;
+									zScore.innerHTML=Game.score;
+									zEnemy.src="img/boom.png";
+									clearInterval(zEnemy.bullethittimer);
+									clearInterval(zEnemy.planehittimer);
+									allbullet[i].parentNode.removeChild(allbullet[i]);
+									setTimeout(function(){
+										if(zEnemy.parentNode){
+											zEnemy.parentNode.removeChild(zEnemy)};
+									},300);
+									break;
+								}
+							}
+						},13);
+						//每个敌军对plane进行碰撞检测
+						var zPlane = document.getElementById("plane");
+						zEnemy.planehittimer = setInterval(function(){
+								if (Game.ifEnd) {
+									clearInterval(zEnemy.planehittimer);
+								}
+								if (Game.hit(zEnemy,zPlane)) {
+									Game.ifEnd=true;
+									zEnemy.src="img/boom.png";
+									zPlane.src="img/boom2.png";
+									clearInterval(zEnemy.timer);
+									clearInterval(zEnemy.bullethittimer);
+									clearInterval(zEnemy.planehittimer);
+									clearInterval(Game.enemyTimer);
+									clearInterval(Game.bulletTimer);
+									setTimeout(function(){
+										Game.over(MainBox);
+									},1000);
+								}
+							
+						},50);
+				},speed);    //*******************敌军生成速度
+			},
+			//碰撞检测函数
+			hit: function(obj1,obj2){
+				var T1 = obj1.offsetTop,
+					L1 = obj1.offsetLeft,
+					R1 = L1+obj1.clientWidth,
+					B1 = T1+obj1.clientHeight;
+				var T2 = obj2.offsetTop,
+					L2 = obj2.offsetLeft,
+					R2 = L2+obj2.clientWidth,
+					B2 = T2+obj2.clientHeight;
+				if(T1>B2||T2>B1||R1<L2||L1>R2){
+					return false;
+				}
+				else {
+					return true;
+				}
+			},
+			//游戏失败 停止游戏并弹出窗口  是否重新开始
+			over: function(MainBox){
+				console.log(1);
+				MainBox.innerHTML="";
+				var zOver = document.createElement("p");
+					zOver.style.cssText="margin:80px auto;text-align:center;";
+					zOver.innerHTML="Game Over!"
+					MainBox.appendChild(zOver);
+				var zScore = document.createElement("p");
+					zScore.style.cssText="margin:80px auto;text-align:center;";
+					zScore.innerHTML="您的得分是"+Game.score;
+					MainBox.appendChild(zScore);
+				var zButton = document.createElement("p");
+					zButton.style.cssText="width:100px;height:40px;margin-top:50;margin-left:100px;text-align:center;background-color:blue;line-height:40px;cursor:pointer;"
+					zButton.innerHTML="重新开始";
+					MainBox.appendChild(zButton);
+					zButton.onclick = function(){
+						Game.init();
+					}
+					
+			},
+			//获得当前所有子弹的集合
+			getClass: function(cName,parent){
+				parent = parent||document;
+				if (document.getElementsByClassName) {
+					return document.getElementsByClassName(cName);
+				}
+				else {
+					var all = parent.getElementsByTagName("*");
+					var arr = [];
+					for(var i=0;i<all.length;i++)
+					{
+						var arrClass = all.className.split(" ");
+						for(var j=0;j<arrClass.length;j++)
+						{
+							if ((arrClass[j]==cName)) {
+								arr.push(all[i]);
+								break;
+							}
+						}
+					}
+					return arr;
+				}
+			},
+		};
+	</script>
+</body>
+</html>
